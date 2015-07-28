@@ -12,7 +12,7 @@ with qw|
 
 use Data::Verifier;
 use MyApp::Types qw|MobileNumber|;
-use Crypt::PRNG qw/random_bytes_hex random_string_from/;
+use Crypt::PRNG qw|random_bytes_hex random_string_from|;
 
 sub verifiers_specs {
     my $self = shift;
@@ -29,7 +29,8 @@ sub verifiers_specs {
                 test_token    => {required => 1, type => 'Str'}
             }
         ),
-        authenticate => Data::Verifier->new( filters => [qw|trim|],
+        authenticate => Data::Verifier->new(
+            filters => [qw|trim|],
             profile => {
                 mobile_number => {required => 1, type => MobileNumber,},
                 auth_token    => {required => 1, type => 'Str'}
@@ -40,6 +41,7 @@ sub verifiers_specs {
 
 sub action_specs {
     my $self = shift;
+    my $dtf    = $self->schema->storage->datetime_parser;
     return {
         create => sub {
             my %values = shift->valid_values;
@@ -51,14 +53,32 @@ sub action_specs {
         },
         check => sub {
             my %values = shift->valid_values;
-            return $self->search(\%values)->count
-                ? $self->create(
-                {%values, auth_token => random_bytes_hex(22)})
-                : {status => 'error'};
+            my $result = $self->search({
+                    %values,
+                    test_token_valid_until => {(
+                            '>=' => $dtf->format_datetime(
+                                DateTime->now(time_zone => 'local')
+                            )
+                        )
+                    }
+                }
+            )->search->first;
+
+            $result->update({auth_token => random_bytes_hex(22)}) if $result;
+
+            return $result;
         },
         authenticate => sub {
             my %values = shift->valid_values;
-            return $self->search(\%values)->count
+            return $self->search({
+                    %values,
+                    auth_token_valid_until => {(
+                            '>=' => $dtf->format_datetime(
+                                DateTime->now(time_zone => 'local')
+                            )
+                        )
+                    }
+                })->count
                 ? {status => 'ok'}
                 : {status => 'error'};
             }

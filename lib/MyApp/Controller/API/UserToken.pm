@@ -31,12 +31,7 @@ sub check_POST {
     my ($self, $c) = @_;
     my $row = $c->stash->{collection}
         ->execute($c, for => 'check', with => $c->req->params );
-
-    #
-    # verificar com RenatoCRON se tem um jeito padrao pra validra a parte abaixo
-    #
-
-    ($row && $row->{status} && $row->{status} eq 'error')
+    (!$row || !$row->auth_token)
         ? $self->status_not_found($c,
         message => 'item not found' )
         : $self->status_accepted($c,
