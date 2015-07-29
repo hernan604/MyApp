@@ -14,7 +14,7 @@ my $schema = MyApp->model('DB')->schema;
 db_transaction {
     rest_post '/mobile-tokens/create',
         name  => 'usuario cadastra mobile number.',
-        code  => 202,
+        code  => 200,
         stash => 'mobile_token',
         [mobile_number => $mobile_number];
 
@@ -66,7 +66,7 @@ db_transaction {
 
     rest_post '/mobile-tokens/check',
         name  => 'criar user token',
-        code  => 202,
+        code  => 200,
         stash => 'mobile_token',
         [mobile_number => $mobile_number, 
         test_token => $received_test_token_via_SMS,
@@ -80,7 +80,7 @@ db_transaction {
 
     rest_post '/mobile-tokens/authenticate',
         name => 'authenticate mobile number and auth_token',
-        code => 202,
+        code => 200,
         stash => 'mobile_token',
         [
             mobile_number => $mobile_number,

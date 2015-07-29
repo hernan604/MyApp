@@ -20,7 +20,7 @@ sub create_POST {
     my ($self, $c) = @_;
     my $row = $c->stash->{collection}
         ->execute($c, for => 'create', with => $c->req->params,);
-    $self->status_accepted($c, entity => {status => 'ok'});
+    $self->status_ok($c, entity => {status => 'ok'});
 }
 
 sub check : Chained('base') : PathPart('check') : Args(0) :
@@ -34,7 +34,7 @@ sub check_POST {
     (!$row || !$row->auth_token)
         ? $self->status_not_found($c,
         message => 'item not found' )
-        : $self->status_accepted($c,
+        : $self->status_ok($c,
         entity => {auth_token => $row->auth_token});
 }
 
@@ -47,7 +47,7 @@ sub authenticate_POST {
     my $row = $c->stash->{collection}
         ->execute($c, for => 'authenticate', with => $c->req->params );
     ($row->{status} eq 'ok')
-        ? $self->status_accepted( $c, entity => { status => 'ok' } )
+        ? $self->status_ok( $c, entity => { status => 'ok' } )
         : $self->status_not_found( $c, message => 'could not authenticate mobilenumber with code' )
 }
 
