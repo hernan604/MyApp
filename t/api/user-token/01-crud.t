@@ -31,6 +31,40 @@ db_transaction {
     $received_test_token_via_SMS = $mobile_saved->test_token;
 
     rest_post '/mobile-tokens/check',
+        name    => 'criar user token with *wrong* mobilenumber',
+        code    => 404,
+        is_fail => 1,
+        stash   => 'mobile_token',
+        [
+        mobile_number => 5511996070211,
+        test_token    => $received_test_token_via_SMS,
+        ];
+
+    rest_post '/mobile-tokens/check',
+        name  => 'criar user token',
+        code  => 404,
+        is_fail => 1,
+        stash => 'mobile_token',
+        [mobile_number => $mobile_number, test_token => 9 x 4,];
+
+    rest_post '/mobile-tokens/authenticate',
+        name    => 'authenticate mobile number and *wrong* auth_token',
+        code    => 404,
+        is_fail => 1,
+        stash   => 'mobile_token',
+        [mobile_number => $mobile_number, auth_token => 9 x 44,];
+
+    rest_post '/mobile-tokens/authenticate',
+        name    => 'authenticate with *wrong* mobile number and auth_token',
+        code    => 400,
+        is_fail => 1,
+        stash   => 'mobile_token',
+        [
+        mobile_number => 5511916074022,
+        auth_token    => $received_auth_token,
+        ];
+
+    rest_post '/mobile-tokens/check',
         name  => 'criar user token',
         code  => 202,
         stash => 'mobile_token',
@@ -43,7 +77,6 @@ db_transaction {
         $received_auth_token = $me->{auth_token};
         ok length $received_auth_token == 44 , 'Auth token has correct length';
     };
-
 
     rest_post '/mobile-tokens/authenticate',
         name => 'authenticate mobile number and auth_token',
